@@ -1,11 +1,15 @@
 {
   "name": "react-amplify-cognito",
   "version": "0.1.0",
+  "description": "React Serverless Node AWS - API",
   "private": true,
   "dependencies": {
+    "aws-amplify": "^1.1.26",
+    "aws-amplify-react": "^2.3.6",
     "axios": "^0.18.0",
     "history": "^4.9.0",
     "react": "^16.8.6",
+    "react-bulma-components": "^2.3.0",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.0",
     "react-scripts": "2.1.8",
@@ -25,5 +29,8 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {
+    "node-sass": "^4.12.0"
+  }
 }

@@ -1,0 +1,81 @@
+service: react-amplify-cognito
+
+plugins:
+  - aws-amplify-serverless-plugin
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  # local vars
+  webSrcPath: "../client/src"
+  functionsPath: "src/functions"
+  # AWS Amplify config generator
+  amplify:
+    - filename: ${self:custom.webSrcPath}/aws-exports.js
+      type: javascript
+      appClient: CognitoUserPoolClient
+      s3bucket: disabled
+  # add webpack to build pipeline, ahead of zipping contents
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+  
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: eu-west-2
+  versionFunctions: false
+
+functions:
+  test:
+    handler: ${self:custom.functionsPath}/test.handler
+    events:
+      - http:
+          path: test
+          cors: true
+          integration: lambda
+          method: get
+          # Note: Can't yet dynamically reference the ARN, wip with SF team
+          authorizer:
+            arn: arn:aws:cognito-idp:eu-west-2:873084848614:userpool/eu-west-2_7NdterzK3
+            claims: 
+              - email
+
+resources:
+  # CloudFormation structure beneath
+  Resources:
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-${self:provider.stage}-user-pool
+        # email as user id
+        UsernameAttributes:
+          - email
+        # verify email before user is active
+        AutoVerifiedAttributes:
+          - email
+        Schema:
+          - Name: email
+            Required: true
+            Mutable: true
+        MfaConfiguration: "OFF"
+    # Client (no secret)
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: ${self:service}-${self:provider.stage}-user-pool-client
+        UserPoolId:
+          Ref: CognitoUserPool
+        GenerateSecret: false
+
+# Print out the Id of the User Pool that is created
+Outputs:
+  UserPoolId:
+    Value:
+      Ref: CognitoUserPool
+
+  UserPoolClientId:
+    Value:
+      Ref: CognitoUserPoolClient
